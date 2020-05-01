@@ -4,26 +4,31 @@
 files = dir(fullfile("data", '*.jpg'));
 
 % files(1).name  % This is how you get the first image filename
-ii = randperm(267,20)
+ii = randperm(267,30)
 
-for i = 1:20
+for i = 1:30
     im = imread("./data/" + files(ii(i)).name);
-    
+    %im = imread("./data/PIL-26_3dayLBCR-4.jpg");
+
     im = imgaussfilt(im,32);
     % im = im2grey(im);
     im_after = im;
 
-    for k = 0.3:0.2:0.7
+    for k = 0.176:0.16:0.816
         tem = im2bw(im, k);  % So the key here is to fin the level for all the images
         [w,l] = size(tem);
-        if sum(tem(:)) < w*l*0.8 && sum(tem(:)) > w*l*0.2
+        if sum(tem(:)) < w*l*0.67 && sum(tem(:)) > w*l*0.33
             tem = bwareaopen(tem,round(w*l*0.2));
-            tem = bwareafilt(tem,1);
+            tem = ~bwareaopen(~tem,round(w*l*0.001));
+            if sum(sum(~bwareaopen(~tem,round(w*l*0.2)))) < w*l*0.33
+                continue
+            end
+            %tem = bwareafilt(tem,[w*l*0.2 w*l]);
             im_after = tem;
             break
         end
         %figure
-        %imshow(im)
+        %imshow(im_after)
     end
 
     [B,L]= bwboundaries(im_after);
