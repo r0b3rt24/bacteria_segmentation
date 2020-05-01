@@ -6,24 +6,25 @@ files = dir(fullfile("data", '*.jpg'));
 % files(1).name  % This is how you get the first image filename
 ii = randperm(267,20)
 
-for i = 1:20
+for i = 1:10
     im = imread("./data/" + files(ii(i)).name);
     
     im = imgaussfilt(im,32);
     % im = im2grey(im);
+    im_after = im;
 
     for k = 0.3:0.2:0.7
         tem = im2bw(im, k);  % So the key here is to fin the level for all the images
         [w,l] = size(tem);
         if sum(tem(:)) < w*l*0.8 && sum(tem(:)) > w*l*0.2
-            im = tem;
+            im_after = tem;
             break
         end
         %figure
         %imshow(im)
     end
 
-    [B,L]= bwboundaries(im);
+    [B,L]= bwboundaries(im_after);
     % [x,y] = size(im)
     % im = regiongrowing(im,floor(x/2),floor(y/2))
     % [centers, radii] = imfindcircles(im, [3000,6000], 'ObjectPolarity', 'dark')
@@ -35,6 +36,8 @@ for i = 1:20
        boundary = B{k};
        plot(boundary(:,2), boundary(:,1), 'w', 'LineWidth', 2)
     end
+    [path, name] = fileparts(files(ii(i)).name)
+    saveas(gcf,strcat(name,"_Seg.png")) 
 end
 % figure;
 % imshow(im)
