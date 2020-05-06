@@ -2,11 +2,15 @@
 % Put the main procedure code here
 
 files = dir(fullfile("data", '*.jpg'));
+% TODO: 1. find the threshold 2. find the largest circle in B
 
 % files(1).name  % This is how you get the first image filename
 im = imread("./data/" + files(67).name);
 im = imgaussfilt(im,32);
 % im = im2grey(im);
+
+% Find the threshold
+
 im = im2bw(im, 0.5);  % So the key here is to fin the level for all the images
 
 [B,L]= bwboundaries(im);
