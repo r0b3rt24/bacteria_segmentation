@@ -6,11 +6,13 @@ files = dir(fullfile("data", '*.jpg'));
 % files(1).name  % This is how you get the first image filename
 ii = randperm(267,30)
 
-for i = 1:30
+for i = 1:1
     im = imread("./data/" + files(ii(i)).name);
     %im = imread("./data/PIL-26_3dayLBCR-4.jpg");
 
-    im = imgaussfilt(im,32);
+    im = imgaussfilt(im,32);  % apply gauss filter to get rid of 
+    
+    imshow(im)
     % im = im2grey(im);
     im_after = im;
 
@@ -46,6 +48,11 @@ for i = 1:30
     [path, name] = fileparts(files(ii(i)).name);
     saveas(gcf,strcat(name,"_Seg.png"));
 end
+
+% Find the largest region in the photo
+
+
+
 % figure;
 % imshow(im)
 
@@ -54,7 +61,47 @@ end
 % im = im2bw(im, 0.5);  % So the key here is to fin the level for all the images
 % 
 % imshow(im)
+%% Single Run
+B = bacteria_segment("./data/PIL-5_3dayLBCR-2.jpg");
+B
 
+%% Evaluation
+ground = im2bw(imread("ground_truth.png"));
+B = edge(seg);
+orig_size = size(B);
+
+ground = imresize(ground, orig_size, 'nearest');
+
+B_g = edge(im2bw(ground));
+
+dist = [];
+for i = 1:size(B, 1)
+    a = ones(size(B_g, 1), 1) * B(i, :);
+    b = (a - B_g) .* (a - B_g);
+    b = sqrt(b * ones(size(B,2),1));
+    dist(i) = min(b);
+end
+
+dist = max(dist);
+
+Hausdorff = dist
+
+overlap_area = length(find((-1* (ground-1) + seg) == 2));
+g_area = length(find(-1* (ground-1) == 1));
+my_area = length(find(seg == 1));
+
+dice_coe = (2*overlap_area)/(g_area + my_area)
+
+figure;
+imshow(B);
+hold on;
+% plot(my_y(1),my_x(1), 'r*');
+axis on;
+figure;
+imshow(B_g);
+axis on;
+figure;
+imshow(B+B_g)
 
 %% Functions
 % Put the suppoert function code here
@@ -91,4 +138,63 @@ function J=regiongrowing(I,x,y,reg_maxdist)
         neg_list(index,:)=neg_list(neg_pos,:); neg_pos=neg_pos-1;
     end
     J=J>1;
+end
+
+function B=bacteria_segment(data_path)
+    im = imread(data_path);
+    %im = imread("./data/PIL-26_3dayLBCR-4.jpg");
+
+    im = imgaussfilt(im,32);  % apply gauss filter to get rid of 
+    
+    imshow(im)
+    % im = im2grey(im);
+    im_after = im;
+
+    for k = 0.176:0.16:0.816
+        tem = im2bw(im, k);  % So the key here is to fin the level for all the images
+        [w,l] = size(tem);
+        if sum(tem(:)) < w*l*0.67 && sum(tem(:)) > w*l*0.33
+            tem = bwareaopen(tem,round(w*l*0.2));
+            tem = ~bwareaopen(~tem,round(w*l*0.001));
+            if sum(sum(~bwareaopen(~tem,round(w*l*0.2)))) < w*l*0.33
+                continue
+            end
+            %tem = bwareafilt(tem,[w*l*0.2 w*l]);
+            im_after = tem;
+            break
+        end
+        %figure
+        %imshow(im_after)
+    end
+
+    [B,L]= bwboundaries(im_after);
+    % [x,y] = size(im)
+    % im = regiongrowing(im,floor(x/2),floor(y/2))
+    % [centers, radii] = imfindcircles(im, [3000,6000], 'ObjectPolarity', 'dark')
+    
+%     max_B_L = 0;
+%     max_k = 1;
+%     for k = 1:length(B)
+%         if length(B{k,1}) > max_B_L
+%             max_B_L = length(B{k,1})
+%             max_k = k
+%         end
+%     end
+%     boundary = B{max_k};
+%     
+%     figure
+%     imshow(label2rgb(L, @jet, [.1 .1 .1]))
+%     plot(boundary(:,2), boundary(:,1), 'w', 'LineWidth', 2)
+
+    figure
+    imshow(label2rgb(L, @jet, [.1 .1 .1]))
+%     hold on
+%     for k = 1:length(B)
+%        boundary = B{k};
+%        plot(boundary(:,2), boundary(:,1), 'w', 'LineWidth', 2)
+%     end
+    
+%     [path, name] = fileparts(files(ii(i)).name);
+%     saveas(gcf,strcat(name,"_Seg.png")); 
+    
 end

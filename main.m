@@ -25,6 +25,44 @@ for k = 1:length(B)
    plot(boundary(:,2), boundary(:,1), 'w', 'LineWidth', 2)
 end
 
+%% Evaluation
+ground = im2bw(imread("ground_truth.png"));
+B = edge(seg);
+orig_size = size(B);
+
+ground = imresize(ground, orig_size, 'nearest');
+
+B_g = edge(im2bw(ground));
+
+dist = [];
+for i = 1:size(B, 1)
+    a = ones(size(B_g, 1), 1) * B(i, :);
+    b = (a - B_g) .* (a - B_g);
+    b = sqrt(b * ones(size(B,2),1));
+    dist(i) = min(b);
+end
+
+dist = max(dist);
+
+Hausdorff = dist
+
+overlap_area = length(find((-1* (ground-1) + seg) == 2));
+g_area = length(find(-1* (ground-1) == 1));
+my_area = length(find(seg == 1));
+
+dice_coe = (2*overlap_area)/(g_area + my_area)
+
+figure;
+imshow(B);
+hold on;
+% plot(my_y(1),my_x(1), 'r*');
+axis on;
+figure;
+imshow(B_g);
+axis on;
+figure;
+imshow(B+B_g)
+
 % figure;
 % imshow(im)
 
