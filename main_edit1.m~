@@ -62,17 +62,16 @@ end
 % 
 % imshow(im)
 %% Single Run
-B = bacteria_segment("./data/PIL-174_3dayLBCR-3.jpg");
-B
+B = bacteria_segment("./data/PIL-5_3dayLBCR-2.jpg");
 
 %% Evaluation
-ground = im2bw(imread("ground_truth.png"));
+ground = im2bw(imread("./GT/PIL-5_3dayLBCR-2_GT.jpg"),0.9);
+imshow(ground)
+%% 
 B = edge(seg);
-orig_size = size(B);
-
-ground = imresize(ground, orig_size, 'nearest');
-
-B_g = edge(im2bw(ground));
+B = bacteria_segment("./data/PIL-5_3dayLBCR-2.jpg");
+ground = im2bw(imread("./GT/PIL-5_3dayLBCR-2_GT.jpg"),0.9);
+B_g = edge(ground);
 
 dist = [];
 for i = 1:size(B, 1)
@@ -146,6 +145,7 @@ function B=bacteria_segment(data_path)
 
     im = imgaussfilt(im,32);  % apply gauss filter to get rid of 
     
+    figure
     imshow(im)
     % im = im2grey(im);
     im_after = im;
@@ -181,17 +181,20 @@ function B=bacteria_segment(data_path)
 %         end
 %     end
 %     boundary = B{max_k};
+%     
 %     figure
 %     imshow(label2rgb(L, @jet, [.1 .1 .1]))
 %     plot(boundary(:,2), boundary(:,1), 'w', 'LineWidth', 2)
-%   
-%     figure
-%     imshow(label2rgb(L, @jet, [.1 .1 .1]))
-%     hold on
-%     for k = 1:length(B)
-%        boundary = B{k};
-%        plot(boundary(:,2), boundary(:,1), 'w', 'LineWidth', 2)
-%     end
+
+    figure
+    imshow(label2rgb(L, @jet, [.1 .1 .1]))
+    hold on
+    for k = 1:length(B)
+       boundary = B{k};
+       plot(boundary(:,2), boundary(:,1), 'w', 'LineWidth', 2)
+    end
+    
 %     [path, name] = fileparts(files(ii(i)).name);
 %     saveas(gcf,strcat(name,"_Seg.png")); 
+    
 end

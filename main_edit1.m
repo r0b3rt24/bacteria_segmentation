@@ -62,46 +62,49 @@ end
 % 
 % imshow(im)
 %% Single Run
-B = bacteria_segment("./data/PIL-5_3dayLBCR-2.jpg");
-B
+L = bacteria_segment("./data/PIL-5_3dayLBCR-2.jpg");
+B = edge(L);
 
 %% Evaluation
-ground = im2bw(imread("ground_truth.png"));
-B = edge(seg);
-orig_size = size(B);
+L = bacteria_segment("./data/PIL-174_3dayLBCR-3.jpg");
+B = edge(L);
+ground = im2bw(imread("./GT/PIL-174_3dayLBCR-3_GT.jpg"),0.9);
 
-ground = imresize(ground, orig_size, 'nearest');
+% B = edge(seg);
+% B = bacteria_segment("./data/PIL-5_3dayLBCR-2.jpg");
+% ground = im2bw(imread("./GT/PIL-5_3dayLBCR-2_GT.jpg"),0.9);
+B_g = edge(ground);
 
-B_g = edge(im2bw(ground));
+% calculating Hausdorff distance, we couldn't run this within 30mins. 
 
-dist = [];
-for i = 1:size(B, 1)
-    a = ones(size(B_g, 1), 1) * B(i, :);
-    b = (a - B_g) .* (a - B_g);
-    b = sqrt(b * ones(size(B,2),1));
-    dist(i) = min(b);
-end
+% dist = [];
+% for i = 1:size(B, 1)
+%     a = ones(size(B_g, 1), 1) * B(i, :);
+%     b = (a - B_g) .* (a - B_g);
+%     b = sqrt(b * ones(size(B,2),1));
+%     dist(i) = min(b);
+% endL
+% 
+% dist = max(dist);
+% 
+% Hausdorff = dist
 
-dist = max(dist);
-
-Hausdorff = dist
-
-overlap_area = length(find((-1* (ground-1) + seg) == 2));
+overlap_area = length(find((-1* (ground-1) + L) == 2));
 g_area = length(find(-1* (ground-1) == 1));
-my_area = length(find(seg == 1));
+my_area = length(find(L == 1));
 
 dice_coe = (2*overlap_area)/(g_area + my_area)
 
-figure;
-imshow(B);
-hold on;
-% plot(my_y(1),my_x(1), 'r*');
-axis on;
-figure;
-imshow(B_g);
-axis on;
-figure;
-imshow(B+B_g)
+% figure;
+% imshow(B);
+% hold on;
+% % plot(my_y(1),my_x(1), 'r*');
+% axis on;
+% figure;
+% imshow(B_g);
+% axis on;
+% figure;
+% imshow(B+B_g)
 
 %% Functions
 % Put the suppoert function code here
@@ -140,13 +143,17 @@ function J=regiongrowing(I,x,y,reg_maxdist)
     J=J>1;
 end
 
-function B=bacteria_segment(data_path)
+function L =bacteria_segment(data_path)
     im = imread(data_path);
+    
+    figure
+    imshow(im)
     %im = imread("./data/PIL-26_3dayLBCR-4.jpg");
 
     im = imgaussfilt(im,32);  % apply gauss filter to get rid of 
     
-    imshow(im)
+%     figure
+%     imshow(im)
     % im = im2grey(im);
     im_after = im;
 
@@ -167,32 +174,15 @@ function B=bacteria_segment(data_path)
         %imshow(im_after)
     end
 
-    [B,L]= bwboundaries(im_after);
-    % [x,y] = size(im)
-    % im = regiongrowing(im,floor(x/2),floor(y/2))
-    % [centers, radii] = imfindcircles(im, [3000,6000], 'ObjectPolarity', 'dark')
+    [B,L]= bwboundaries(im_after, 'noholes');
     
-%     max_B_L = 0;
-%     max_k = 1;
-%     for k = 1:length(B)
-%         if length(B{k,1}) > max_B_L
-%             max_B_L = length(B{k,1})
-%             max_k = k
-%         end
-%     end
-%     boundary = B{max_k};
-%     
-%     figure
-%     imshow(label2rgb(L, @jet, [.1 .1 .1]))
-%     plot(boundary(:,2), boundary(:,1), 'w', 'LineWidth', 2)
-
     figure
     imshow(label2rgb(L, @jet, [.1 .1 .1]))
-%     hold on
-%     for k = 1:length(B)
-%        boundary = B{k};
-%        plot(boundary(:,2), boundary(:,1), 'w', 'LineWidth', 2)
-%     end
+    hold on
+    for k = 1:length(B)
+       boundary = B{k};
+       plot(boundary(:,2), boundary(:,1), 'w', 'LineWidth', 2)
+    end
     
 %     [path, name] = fileparts(files(ii(i)).name);
 %     saveas(gcf,strcat(name,"_Seg.png")); 
