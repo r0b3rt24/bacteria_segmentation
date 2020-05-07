@@ -6,14 +6,12 @@ files = dir(fullfile("data", '*.jpg'));
 % files(1).name  % This is how you get the first image filename
 ii = randperm(267,30)
 
-for i = 1:1
+for i = 1:30
     im = imread("./data/" + files(ii(i)).name);
-    %im = imread("./data/PIL-26_3dayLBCR-4.jpg");
 
     im = imgaussfilt(im,32);  % apply gauss filter to get rid of 
     
     imshow(im)
-    % im = im2grey(im);
     im_after = im;
 
     for k = 0.176:0.16:0.816
@@ -25,18 +23,12 @@ for i = 1:1
             if sum(sum(~bwareaopen(~tem,round(w*l*0.2)))) < w*l*0.33
                 continue
             end
-            %tem = bwareafilt(tem,[w*l*0.2 w*l]);
             im_after = tem;
             break
         end
-        %figure
-        %imshow(im_after)
     end
 
     [B,L]= bwboundaries(im_after);
-    % [x,y] = size(im)
-    % im = regiongrowing(im,floor(x/2),floor(y/2))
-    % [centers, radii] = imfindcircles(im, [3000,6000], 'ObjectPolarity', 'dark')
 
     figure
     imshow(label2rgb(L, @jet, [.1 .1 .1]))
@@ -49,18 +41,6 @@ for i = 1:1
     saveas(gcf,strcat(name,"_Seg.png"));
 end
 
-% Find the largest region in the photo
-
-
-
-% figure;
-% imshow(im)
-
-% figure;
-% im = imread("./data/" + files(33).name);
-% im = im2bw(im, 0.5);  % So the key here is to fin the level for all the images
-% 
-% imshow(im)
 %% Single Run
 L = bacteria_segment("./data/PIL-5_3dayLBCR-2.jpg");
 B = edge(L);
@@ -70,9 +50,6 @@ L = bacteria_segment("./data/PIL-174_3dayLBCR-3.jpg");
 B = edge(L);
 ground = im2bw(imread("./GT/PIL-174_3dayLBCR-3_GT.jpg"),0.9);
 
-% B = edge(seg);
-% B = bacteria_segment("./data/PIL-5_3dayLBCR-2.jpg");
-% ground = im2bw(imread("./GT/PIL-5_3dayLBCR-2_GT.jpg"),0.9);
 B_g = edge(ground);
 
 % calculating Hausdorff distance, we couldn't run this within 30mins. 
@@ -94,6 +71,8 @@ g_area = length(find(-1* (ground-1) == 1));
 my_area = length(find(L == 1));
 
 dice_coe = (2*overlap_area)/(g_area + my_area)
+
+% below are code support visualization 
 
 % figure;
 % imshow(B);
@@ -148,13 +127,9 @@ function L =bacteria_segment(data_path)
     
     figure
     imshow(im)
-    %im = imread("./data/PIL-26_3dayLBCR-4.jpg");
 
     im = imgaussfilt(im,32);  % apply gauss filter to get rid of 
     
-%     figure
-%     imshow(im)
-    % im = im2grey(im);
     im_after = im;
 
     for k = 0.176:0.16:0.816
@@ -166,12 +141,9 @@ function L =bacteria_segment(data_path)
             if sum(sum(~bwareaopen(~tem,round(w*l*0.2)))) < w*l*0.33
                 continue
             end
-            %tem = bwareafilt(tem,[w*l*0.2 w*l]);
             im_after = tem;
             break
         end
-        %figure
-        %imshow(im_after)
     end
 
     [B,L]= bwboundaries(im_after, 'noholes');
@@ -184,6 +156,7 @@ function L =bacteria_segment(data_path)
        plot(boundary(:,2), boundary(:,1), 'w', 'LineWidth', 2)
     end
     
+    % Uncomment this if you need to save the image.
 %     [path, name] = fileparts(files(ii(i)).name);
 %     saveas(gcf,strcat(name,"_Seg.png")); 
     
